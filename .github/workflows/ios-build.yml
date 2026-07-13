@@ -4,10 +4,8 @@ on:
   push:
     paths:
       - "App/**"
-      - "Sources/**"
-      - "Tests/**"
+      - "RoutenplanerLogic/**"
       - "project.yml"
-      - "Package.swift"
       - ".github/workflows/**"
   workflow_dispatch:
 
@@ -35,7 +33,7 @@ jobs:
         run: xcodebuild -list -project Routenplaner.xcodeproj | grep -q "Routenplaner"
 
       - name: Unit test logic package
-        run: swift test
+        run: swift test --package-path RoutenplanerLogic
 
       - name: Typecheck (fast fail before archive)
         run: |

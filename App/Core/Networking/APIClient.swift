@@ -1,5 +1,4 @@
 import Foundation
-import RoutenplanerLogic
 
 /// URLSession client. Reproduces Android's DynamicBaseUrlInterceptor (origin from
 /// ConnectionStore) + AuthInterceptor (?token= on authenticated data requests).

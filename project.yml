@@ -7,9 +7,6 @@ options:
 configs:
   Debug: debug
   Release: release
-packages:
-  RoutenplanerLogic:
-    path: RoutenplanerLogic
 settings:
   base:
     MARKETING_VERSION: "1.5.0"
@@ -26,9 +23,7 @@ targets:
       Release: Secrets.xcconfig
     sources:
       - path: App
-    dependencies:
-      - package: RoutenplanerLogic
-        product: RoutenplanerLogic
+      - path: RoutenplanerLogic/Sources/RoutenplanerLogic
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.routenplaner.app

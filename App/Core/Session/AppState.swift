@@ -1,5 +1,4 @@
 import Foundation
-import RoutenplanerLogic
 
 enum AppPhase { case connection, login, main }
 

@@ -1,5 +1,4 @@
 import Foundation
-import RoutenplanerLogic
 
 @MainActor
 final class LoginViewModel: ObservableObject {

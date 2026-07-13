@@ -1,5 +1,4 @@
 import SwiftUI
-import RoutenplanerLogic
 
 struct ConnectionView: View {
     @EnvironmentObject var app: AppState

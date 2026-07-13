@@ -1,0 +1,44 @@
+name: Routenplaner
+options:
+  bundleIdPrefix: com.routenplaner
+  deploymentTarget:
+    iOS: "16.0"
+  createIntermediateGroups: true
+configs:
+  Debug: debug
+  Release: release
+settings:
+  base:
+    MARKETING_VERSION: "1.5.0"
+    CURRENT_PROJECT_VERSION: "17"
+    SWIFT_VERSION: "5.9"
+    DEVELOPMENT_TEAM: ""
+    CODE_SIGNING_ALLOWED: "NO"
+targets:
+  Routenplaner:
+    type: application
+    platform: iOS
+    configFiles:
+      Debug: Secrets.xcconfig
+      Release: Secrets.xcconfig
+    sources:
+      - path: App
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.routenplaner.app
+        PRODUCT_NAME: Routenplaner
+        GENERATE_INFOPLIST_FILE: "NO"
+        INFOPLIST_FILE: App/Info.plist
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        TARGETED_DEVICE_FAMILY: "1,2"
+# One explicit, SHARED scheme named exactly "Routenplaner" (do NOT also add a
+# target-level `scheme:` block — that would create a second, colliding scheme).
+schemes:
+  Routenplaner:
+    build:
+      targets:
+        Routenplaner: all
+    run:
+      config: Debug
+    archive:
+      config: Release

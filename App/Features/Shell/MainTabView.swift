@@ -41,11 +41,28 @@ private struct PlaceholderScreen: View {
 
 private struct MoreScreen: View {
     @EnvironmentObject var app: AppState
+    @State private var cacheStatus = ""
+    @State private var loading = false
+
     var body: some View {
         List {
             Section {
                 if let name = app.store.serverName {
                     LabeledContent("Server", value: name)
+                }
+            }
+            Section("Daten (Phase 3)") {
+                Button {
+                    Task { await testCustomerCache() }
+                } label: {
+                    HStack {
+                        Text("Kunden laden + cachen")
+                        if loading { Spacer(); ProgressView() }
+                    }
+                }
+                .disabled(loading)
+                if !cacheStatus.isEmpty {
+                    Text(cacheStatus).font(.footnote).foregroundStyle(.secondary)
                 }
             }
             Section {
@@ -57,5 +74,18 @@ private struct MoreScreen: View {
             }
         }
         .navigationTitle("Mehr")
+    }
+
+    private func testCustomerCache() async {
+        loading = true
+        defer { loading = false }
+        let result = await app.customers.list()
+        let cached = await app.customers.cachedCount()
+        switch result {
+        case .success(let list):
+            cacheStatus = "\(list.count) Kunden geladen · \(cached) im Cache"
+        case .failure(let e):
+            cacheStatus = "Fehler: \(e.localizedDescription) · \(cached) im Cache (offline)"
+        }
     }
 }

@@ -11,6 +11,9 @@ packages:
   Citadel:
     url: https://github.com/orlandos-nl/Citadel.git
     exactVersion: 0.12.1
+  GRDB:
+    url: https://github.com/groue/GRDB.swift
+    from: "7.0.0"
 settings:
   base:
     MARKETING_VERSION: "1.5.0"
@@ -31,6 +34,8 @@ targets:
     dependencies:
       - package: Citadel
         product: Citadel
+      - package: GRDB
+        product: GRDB
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.routenplaner.app

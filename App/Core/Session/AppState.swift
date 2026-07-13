@@ -11,10 +11,18 @@ final class AppState: ObservableObject {
 
     let store: ConnectionStore
     let api: APIClient
+    let db: AppDatabase
+    let customers: CustomerRepository
+    let visits: VisitRepository
 
     init(store: ConnectionStore = ConnectionStore()) {
         self.store = store
-        self.api = APIClient(store: store)
+        let api = APIClient(store: store)
+        self.api = api
+        let database = AppDatabase.shared
+        self.db = database
+        self.customers = CustomerRepository(api: api, db: database)
+        self.visits = VisitRepository(api: api, db: database)
         NotificationCenter.default.addObserver(
             forName: UIApplication.willEnterForegroundNotification,
             object: nil, queue: .main

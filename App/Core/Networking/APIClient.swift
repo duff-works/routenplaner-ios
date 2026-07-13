@@ -69,4 +69,44 @@ final class APIClient {
         let _: SuccessResponse? = try? await postJSON(
             path: "/auth/logout", body: LogoutRequest(token: token), authenticated: false)
     }
+
+    // MARK: - Data (authenticated GET; ?token= query)
+
+    private func getJSON<Out: Decodable>(path: String, query: [URLQueryItem] = []) async throws -> Out {
+        var q = query
+        if let token = Keychain.token() {
+            q.append(URLQueryItem(name: "token", value: token))
+        }
+        var req = URLRequest(url: try url(path: path, query: q))
+        req.httpMethod = "GET"
+        req.timeoutInterval = 30
+
+        let data: Data, response: URLResponse
+        do {
+            (data, response) = try await session.data(for: req)
+        } catch let e as URLError where e.code == .timedOut {
+            throw APIError.timeout
+        } catch {
+            throw APIError.transport(error.localizedDescription)
+        }
+        let status = (response as? HTTPURLResponse)?.statusCode ?? 0
+        if let apiErr = mapHTTPStatus(status, body: data) { throw apiErr }
+        do {
+            return try decoder.decode(Out.self, from: data)
+        } catch {
+            throw APIError.decoding(error.localizedDescription)
+        }
+    }
+
+    func getCustomers(search: String? = nil) async throws -> [Customer] {
+        var q: [URLQueryItem] = []
+        if let s = search, !s.isEmpty { q.append(URLQueryItem(name: "search", value: s)) }
+        let resp: CustomerListResponse = try await getJSON(path: "/kunden", query: q)
+        return resp.customers
+    }
+
+    func getVisits() async throws -> [Visit] {
+        let resp: VisitListResponse = try await getJSON(path: "/besuche")
+        return resp.visits
+    }
 }

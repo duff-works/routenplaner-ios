@@ -124,4 +124,38 @@ final class APIClient {
     func getRoute(id: String) async throws -> Route {
         try await getJSON(path: "/routen/\(id)")
     }
+
+    func getMapsKey() async throws -> String {
+        let r: MapsKeyResponse = try await getJSON(path: "/settings/maps-key")
+        return r.key
+    }
+
+    /// Live GPS report during navigation (throttled by the caller). Token is a query param.
+    func gpsUpdate(lat: Double, lon: Double, accuracy: Double,
+                   speed: Double?, heading: Double?, routeId: String?) async {
+        let body = GpsUpdateBody(lat: lat, lon: lon, accuracy: accuracy,
+                                 speed: speed, heading: heading, routeId: routeId)
+        let _: SuccessResponse? = try? await postJSON(path: "/gps/update", body: body, authenticated: true)
+    }
+
+    func gpsStop() async {
+        let _: SuccessResponse? = try? await postJSON(path: "/gps/stop", body: EmptyBody(), authenticated: true)
+    }
 }
+
+struct MapsKeyResponse: Decodable { let key: String; let mapId: String? }
+
+private struct GpsUpdateBody: Encodable {
+    let lat: Double
+    let lon: Double
+    let accuracy: Double
+    let speed: Double?
+    let heading: Double?
+    let routeId: String?
+    enum CodingKeys: String, CodingKey {
+        case lat, lon, accuracy, speed, heading
+        case routeId = "route_id"
+    }
+}
+
+private struct EmptyBody: Encodable {}

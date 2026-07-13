@@ -1,4 +1,5 @@
 import SwiftUI
+import RoutenplanerLogic
 
 struct RouteDetailView: View {
     let routeId: String
@@ -6,6 +7,8 @@ struct RouteDetailView: View {
     @State private var route: Route?
     @State private var loading = true
     @State private var error: String?
+    @State private var showNav = false
+    @State private var selectedTarget: NavTarget?
 
     var body: some View {
         Group {
@@ -42,7 +45,32 @@ struct RouteDetailView: View {
         }
         .navigationTitle(route?.name ?? "Route")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            if firstNavTarget() != nil {
+                ToolbarItem(placement: .primaryAction) {
+                    Button {
+                        selectedTarget = firstNavTarget()
+                        showNav = true
+                    } label: {
+                        Image(systemName: "location.north.line.fill")
+                    }
+                }
+            }
+        }
+        .fullScreenCover(isPresented: $showNav) {
+            if let t = selectedTarget {
+                TurnByTurnView(vm: NavigationViewModel(api: app.api, routeId: routeId, target: t))
+            }
+        }
         .task { await load() }
+    }
+
+    /// First stop with coordinates — the destination for a demo nav leg.
+    private func firstNavTarget() -> NavTarget? {
+        guard let stop = (route?.stops ?? []).first(where: { ($0.lat ?? 0) != 0 || ($0.lon ?? 0) != 0 }),
+              let lat = stop.lat, let lon = stop.lon else { return nil }
+        return NavTarget(destination: LatLon(lat, lon), parking: nil,
+                         name: stop.customerName ?? stop.freeStopName ?? "Stopp")
     }
 
     @ViewBuilder private func stopRow(index: Int, stop: RouteStop) -> some View {

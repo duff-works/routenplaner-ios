@@ -52,25 +52,33 @@ final class AppState: ObservableObject {
         phase = .connection
     }
 
-    /// Extern (SSH) connect: load the Keychain config, bring up the tunnel, and
-    /// only after it reports connected point server_url at the loopback forward.
+    /// Extern (SSH) connect: bring up the tunnel then advance to login.
     func connectExtern() async throws {
-        guard let config = SSHTunnelConfig.fromKeychain(), config.isConfigured else {
-            throw SSHAuthError.notConfigured
-        }
-        let t = SSHTunnel(config: config)
-        tunnel = t
-        try await t.connect()
-        store.serverURL = "http://localhost:\(config.localPort)"
-        store.isExtern = true
-        store.serverName = "Extern (SSH)"
+        try await establishTunnel()
         phase = .login
     }
 
-    /// iOS suspends the app in the background, killing the tunnel; rebuild it on
-    /// return to foreground when the extern path is active.
+    /// Builds a FRESH tunnel (disconnecting any previous one first) and, only after
+    /// it connects, points server_url at the loopback forward. Does not change phase.
+    private func establishTunnel() async throws {
+        guard let config = SSHTunnelConfig.fromKeychain(), config.isConfigured else {
+            throw SSHAuthError.notConfigured
+        }
+        await tunnel?.disconnect()          // release the previous tunnel + its port (I3)
+        let t = SSHTunnel(config: config)
+        tunnel = t
+        try await t.connect()
+        // Bind is on IPv4 127.0.0.1; use it (not "localhost", which also resolves to ::1). (I2)
+        store.serverURL = "http://127.0.0.1:\(config.localPort)"
+        store.isExtern = true
+        store.serverName = "Extern (SSH)"
+    }
+
+    /// iOS suspends the app in the background, killing the tunnel with no reliable
+    /// death signal — so on return to foreground in extern mode we rebuild a fresh
+    /// tunnel rather than trust the old one's (stale) state. (C1)
     func reconnectTunnelIfNeeded() async {
-        guard store.isExtern, let t = tunnel, !t.isConnected else { return }
-        try? await t.connect()
+        guard store.isExtern, phase != .connection, tunnel != nil else { return }
+        try? await establishTunnel()
     }
 }

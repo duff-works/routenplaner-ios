@@ -12,6 +12,10 @@ private struct Unchecked<T>: @unchecked Sendable { let v: T }
 /// 127.0.0.1:<localPort>, and pipe each inbound connection through a per-connection
 /// SSH direct-tcpip channel to <remoteHost>:<remotePort>. Reproduces Android JSch
 /// `setPortForwardingL`.
+///
+/// A tunnel is SINGLE-USE: `connect()` once, `disconnect()` once (which also shuts
+/// down the event-loop group). To reconnect (e.g. after iOS suspends the app), build
+/// a fresh `SSHTunnel` — see AppState.reconnectTunnelIfNeeded.
 @MainActor
 final class SSHTunnel: ObservableObject {
     enum State: Equatable { case disconnected, connecting, connected, failed(String) }
@@ -22,6 +26,7 @@ final class SSHTunnel: ObservableObject {
     private let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
     private var client: SSHClient?
     private var serverChannel: Channel?
+    private var didShutdownGroup = false
 
     init(config: SSHTunnelConfig) { self.config = config }
 
@@ -38,7 +43,7 @@ final class SSHTunnel: ObservableObject {
                 port: config.port,
                 authenticationMethod: auth,
                 hostKeyValidator: .acceptAnything(),   // matches Android StrictHostKeyChecking=no
-                reconnect: .never,                     // we rebuild the tunnel ourselves on foreground
+                reconnect: .never,                     // single-use tunnel; rebuild fresh on foreground
                 algorithms: .all,                      // needed for ssh-rsa / DH-group14 servers
                 group: group,
                 connectTimeout: .seconds(10)
@@ -48,7 +53,7 @@ final class SSHTunnel: ObservableObject {
             state = .connected
         } catch {
             state = .failed(Self.message(for: error))
-            await teardown()
+            await teardownAndShutdown()   // release channels + group; keep .failed for the UI
             throw error
         }
     }
@@ -68,16 +73,25 @@ final class SSHTunnel: ObservableObject {
                     let inbound = boxedInbound.v
                     let (localGlue, sshGlue) = PipeGlueHandler.matchedPair()
                     let origin = try SocketAddress(ipAddress: "127.0.0.1", port: 0)
-                    _ = try await boxedClient.v.createDirectTCPIPChannel(
+                    let sshChannel = try await boxedClient.v.createDirectTCPIPChannel(
                         using: SSHChannelType.DirectTCPIP(
                             targetHost: remoteHost,
                             targetPort: remotePort,
                             originatorAddress: origin
                         )
                     ) { sshChannel in
-                        sshChannel.pipeline.addHandler(sshGlue)
+                        // Allow clean half-close so a backend EOF doesn't truncate the tail
+                        // of a large response (M6).
+                        sshChannel.setOption(ChannelOptions.allowRemoteHalfClosure, value: true)
+                            .flatMap { sshChannel.pipeline.addHandler(sshGlue) }
                     }
-                    try await inbound.pipeline.addHandler(localGlue).get()
+                    do {
+                        try await inbound.pipeline.addHandler(localGlue).get()
+                    } catch {
+                        // Don't leak the already-opened SSH channel if wiring the local end fails (M7).
+                        try? await sshChannel.close()
+                        throw error
+                    }
                 }
                 return promise.futureResult
             }
@@ -86,11 +100,13 @@ final class SSHTunnel: ObservableObject {
     }
 
     func disconnect() async {
-        await teardown()
+        await teardownAndShutdown()
         state = .disconnected
     }
 
-    private func teardown() async {
+    /// Closes the listener + client, then shuts the event-loop group down (async, off
+    /// the main thread) so the port is released without relying on `deinit`.
+    private func teardownAndShutdown() async {
         if let s = serverChannel {
             try? await s.close()
             serverChannel = nil
@@ -98,6 +114,10 @@ final class SSHTunnel: ObservableObject {
         if let c = client {
             try? await c.close()
             client = nil
+        }
+        if !didShutdownGroup {
+            didShutdownGroup = true
+            try? await group.shutdownGracefully()
         }
     }
 
@@ -114,6 +134,7 @@ final class SSHTunnel: ObservableObject {
     }
 
     deinit {
+        // Last resort only; disconnect() normally shuts the group down asynchronously first.
         try? group.syncShutdownGracefully()
     }
 }

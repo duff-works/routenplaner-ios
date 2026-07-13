@@ -83,10 +83,11 @@ struct ConnectionView: View {
                 try await app.connectExtern()
                 // On success the AppState gate advances to .login (root switches away).
             } catch {
-                if case .failed(let msg)? = app.tunnel?.state {
-                    sshError = msg
-                } else if error is SSHAuthError {
+                // Check the config error first — a stale tunnel may still be .failed (M8).
+                if error is SSHAuthError {
                     sshError = "SSH-Einstellungen unvollständig."
+                } else if case .failed(let msg)? = app.tunnel?.state {
+                    sshError = msg
                 } else {
                     sshError = "SSH-Verbindung fehlgeschlagen."
                 }

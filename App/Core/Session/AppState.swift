@@ -22,11 +22,16 @@ final class AppState: ObservableObject {
         phase = .main
     }
 
-    func logout() async {
-        await api.logout()
+    /// Optimistic local logout: clear the session immediately (don't block the UI
+    /// on the network), then fire a best-effort server logout in the background.
+    func logout() {
+        let token = Keychain.token()
         Keychain.deleteToken()
         session = nil
         phase = .login
+        if let token {
+            Task { await api.logout(token: token) }
+        }
     }
 
     /// Called when any authenticated request returns 401 mid-session.

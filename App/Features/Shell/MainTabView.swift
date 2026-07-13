@@ -50,7 +50,7 @@ private struct MoreScreen: View {
             }
             Section {
                 Button(role: .destructive) {
-                    Task { await app.logout() }
+                    app.logout()
                 } label: {
                     Text("Abmelden")
                 }

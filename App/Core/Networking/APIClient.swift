@@ -66,8 +66,7 @@ final class APIClient {
     }
 
     /// Best-effort logout; token travels in the body.
-    func logout() async {
-        guard let token = Keychain.token() else { return }
+    func logout(token: String) async {
         let _: SuccessResponse? = try? await postJSON(
             path: "/auth/logout", body: LogoutRequest(token: token), authenticated: false)
     }

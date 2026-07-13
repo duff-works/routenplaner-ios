@@ -37,10 +37,11 @@ struct ConnectionView: View {
             error = "Ungültige Adresse."
             return
         }
+        let cleaned = localInput.trimmingCharacters(in: .whitespacesAndNewlines)
         app.store.serverURL = origin
         app.store.isExtern = false
-        app.store.lastLocalIP = localInput
-        app.store.serverName = "Lokal (\(localInput))"
+        app.store.lastLocalIP = cleaned
+        app.store.serverName = "Lokal (\(cleaned))"
         error = nil
         app.phase = .login
     }

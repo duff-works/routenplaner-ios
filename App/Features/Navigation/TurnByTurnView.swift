@@ -1,5 +1,4 @@
 import SwiftUI
-import RoutenplanerLogic
 
 /// Full-screen turn-by-turn navigation (named TurnByTurnView to avoid shadowing
 /// SwiftUI's deprecated NavigationView).

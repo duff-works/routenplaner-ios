@@ -1,5 +1,4 @@
 import SwiftUI
-import RoutenplanerLogic
 
 struct RouteDetailView: View {
     let routeId: String

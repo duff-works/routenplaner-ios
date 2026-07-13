@@ -1,7 +1,6 @@
 import SwiftUI
 import GoogleMaps
 import CoreLocation
-import RoutenplanerLogic
 
 /// Full-screen navigation map: draws the route line, a heading-rotated puck, and
 /// follows the user (camera bearing/tilt/zoom) — mirrors Android NavMapComposable.

@@ -1,6 +1,5 @@
 import Foundation
 import CoreLocation
-import RoutenplanerLogic
 
 /// Orchestrates the pure NavigationEngine with CoreLocation, the Directions HTTP API,
 /// German TTS, and throttled backend GPS reporting.

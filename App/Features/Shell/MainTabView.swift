@@ -9,7 +9,7 @@ struct MainTabView: View {
                 .tabItem { Label("Heute", systemImage: "calendar") }
             NavigationStack { PlaceholderScreen(title: "Route") }
                 .tabItem { Label("Route", systemImage: "map") }
-            NavigationStack { PlaceholderScreen(title: "Kunden") }
+            NavigationStack { CustomersListView() }
                 .tabItem { Label("Kunden", systemImage: "person.2") }
             NavigationStack { PlaceholderScreen(title: "Punkte") }
                 .tabItem { Label("Punkte", systemImage: "star") }
@@ -49,6 +49,13 @@ private struct MoreScreen: View {
             Section {
                 if let name = app.store.serverName {
                     LabeledContent("Server", value: name)
+                }
+            }
+            Section {
+                NavigationLink {
+                    VisitsListView()
+                } label: {
+                    Label("Besuche", systemImage: "checklist")
                 }
             }
             Section("Daten (Phase 3)") {

@@ -109,4 +109,9 @@ final class APIClient {
         let resp: VisitListResponse = try await getJSON(path: "/besuche")
         return resp.visits
     }
+
+    /// Full customer with nested collections (addresses, contacts, sortiment, …).
+    func getCustomer(id: String) async throws -> Customer {
+        try await getJSON(path: "/kunden/\(id)")
+    }
 }

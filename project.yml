@@ -2,11 +2,15 @@ name: Routenplaner
 options:
   bundleIdPrefix: com.routenplaner
   deploymentTarget:
-    iOS: "16.0"
+    iOS: "17.0"
   createIntermediateGroups: true
 configs:
   Debug: debug
   Release: release
+packages:
+  Citadel:
+    url: https://github.com/orlandos-nl/Citadel.git
+    exactVersion: 0.12.1
 settings:
   base:
     MARKETING_VERSION: "1.5.0"
@@ -24,6 +28,9 @@ targets:
     sources:
       - path: App
       - path: RoutenplanerLogic/Sources/RoutenplanerLogic
+    dependencies:
+      - package: Citadel
+        product: Citadel
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.routenplaner.app

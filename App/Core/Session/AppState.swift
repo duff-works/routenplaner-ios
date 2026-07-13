@@ -1,4 +1,5 @@
 import Foundation
+import UIKit
 
 enum AppPhase { case connection, login, main }
 
@@ -6,6 +7,7 @@ enum AppPhase { case connection, login, main }
 final class AppState: ObservableObject {
     @Published var phase: AppPhase = .connection   // always start at connection (mirrors Android)
     @Published var session: UserSession?
+    @Published var tunnel: SSHTunnel?
 
     let store: ConnectionStore
     let api: APIClient
@@ -13,6 +15,12 @@ final class AppState: ObservableObject {
     init(store: ConnectionStore = ConnectionStore()) {
         self.store = store
         self.api = APIClient(store: store)
+        NotificationCenter.default.addObserver(
+            forName: UIApplication.willEnterForegroundNotification,
+            object: nil, queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in await self?.reconnectTunnelIfNeeded() }
+        }
     }
 
     func completeLogin(_ session: UserSession) {
@@ -42,5 +50,27 @@ final class AppState: ObservableObject {
 
     func backToConnection() {
         phase = .connection
+    }
+
+    /// Extern (SSH) connect: load the Keychain config, bring up the tunnel, and
+    /// only after it reports connected point server_url at the loopback forward.
+    func connectExtern() async throws {
+        guard let config = SSHTunnelConfig.fromKeychain(), config.isConfigured else {
+            throw SSHAuthError.notConfigured
+        }
+        let t = SSHTunnel(config: config)
+        tunnel = t
+        try await t.connect()
+        store.serverURL = "http://localhost:\(config.localPort)"
+        store.isExtern = true
+        store.serverName = "Extern (SSH)"
+        phase = .login
+    }
+
+    /// iOS suspends the app in the background, killing the tunnel; rebuild it on
+    /// return to foreground when the extern path is active.
+    func reconnectTunnelIfNeeded() async {
+        guard store.isExtern, let t = tunnel, !t.isConnected else { return }
+        try? await t.connect()
     }
 }

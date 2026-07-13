@@ -6,6 +6,10 @@ struct ConnectionView: View {
     @State private var showSSH = false
     @State private var error: String?
 
+    @State private var externConnecting = false
+    @State private var sshConfigured = false
+    @State private var sshError: String?
+
     var body: some View {
         NavigationStack {
             Form {
@@ -15,20 +19,46 @@ struct ConnectionView: View {
                         .autocorrectionDisabled()
                         .textInputAutocapitalization(.never)
                     Button("Verbinden (Lokal)") { connectLocal() }
+                    if let error {
+                        Text(error).foregroundStyle(.red)
+                    }
                 }
                 Section("Extern (SSH)") {
                     Button("SSH-Einstellungen") { showSSH = true }
-                    Text("Der SSH-Tunnel wird in Phase 2 aktiviert.")
-                        .font(.footnote).foregroundStyle(.secondary)
-                }
-                if let error {
-                    Text(error).foregroundStyle(.red)
+                    Button {
+                        connectExtern()
+                    } label: {
+                        HStack {
+                            Text("Verbinden (Extern)")
+                            if externConnecting {
+                                Spacer()
+                                ProgressView()
+                            }
+                        }
+                    }
+                    .disabled(externConnecting || !sshConfigured)
+                    if !sshConfigured {
+                        Text("SSH-Einstellungen zuerst ausfüllen.")
+                            .font(.footnote).foregroundStyle(.secondary)
+                    }
+                    if let sshError {
+                        Text(sshError).foregroundStyle(.red)
+                    }
                 }
             }
             .navigationTitle("Verbindung")
-            .sheet(isPresented: $showSSH) { SSHSettingsView() }
-            .onAppear { localInput = app.store.lastLocalIP ?? "192.168.1.156:8003" }
+            .sheet(isPresented: $showSSH, onDismiss: refreshSSHConfigured) {
+                SSHSettingsView()
+            }
+            .onAppear {
+                localInput = app.store.lastLocalIP ?? "192.168.1.156:8003"
+                refreshSSHConfigured()
+            }
         }
+    }
+
+    private func refreshSSHConfigured() {
+        sshConfigured = SSHTunnelConfig.fromKeychain()?.isConfigured ?? false
     }
 
     private func connectLocal() {
@@ -43,5 +73,25 @@ struct ConnectionView: View {
         app.store.serverName = "Lokal (\(cleaned))"
         error = nil
         app.phase = .login
+    }
+
+    private func connectExtern() {
+        externConnecting = true
+        sshError = nil
+        Task {
+            do {
+                try await app.connectExtern()
+                // On success the AppState gate advances to .login (root switches away).
+            } catch {
+                if case .failed(let msg)? = app.tunnel?.state {
+                    sshError = msg
+                } else if error is SSHAuthError {
+                    sshError = "SSH-Einstellungen unvollständig."
+                } else {
+                    sshError = "SSH-Verbindung fehlgeschlagen."
+                }
+            }
+            externConnecting = false
+        }
     }
 }

@@ -169,7 +169,7 @@ struct PunkteView: View {
                 ProgressView()
             } else {
                 Image(systemName: "star.circle.fill")
-                    .font(.system(size: 56)).foregroundStyle(.yellow)
+                    .font(.system(size: 56)).foregroundStyle(Color.kcGold)
                 Text("\(konto?.gesamt ?? 0)").font(.system(size: 44, weight: .bold))
                 Text("Punkte gesamt").font(.subheadline).foregroundStyle(.secondary)
             }

@@ -22,6 +22,7 @@ struct RoutenplanerApp: App {
                 }
             }
             .environmentObject(app)
+            .tint(.kcGold)
         }
     }
 }

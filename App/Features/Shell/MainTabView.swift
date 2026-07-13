@@ -5,7 +5,7 @@ struct MainTabView: View {
 
     var body: some View {
         TabView {
-            NavigationStack { DashboardPlaceholder() }
+            NavigationStack { DashboardView() }
                 .tabItem { Label("Heute", systemImage: "calendar") }
             NavigationStack { PlaceholderScreen(title: "Route") }
                 .tabItem { Label("Route", systemImage: "map") }
@@ -19,16 +19,34 @@ struct MainTabView: View {
     }
 }
 
-private struct DashboardPlaceholder: View {
+private struct DashboardView: View {
     @EnvironmentObject var app: AppState
+    @State private var pins: [MapPin] = []
+
     var body: some View {
-        VStack(spacing: 8) {
-            Text("Verbunden").font(.title2).bold()
+        VStack(spacing: 0) {
             if let s = app.session {
-                Text("\(s.username) · \(s.role)").foregroundStyle(.secondary)
+                VStack(spacing: 2) {
+                    Text("Verbunden als \(s.username)").font(.subheadline).bold()
+                    Text(s.role).font(.caption).foregroundStyle(.secondary)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 8)
             }
+            GoogleMapView(pins: pins)
+                .ignoresSafeArea(edges: .bottom)
         }
         .navigationTitle("Heute")
+        .task { await loadPins() }
+    }
+
+    private func loadPins() async {
+        if case .success(let customers) = await app.customers.list() {
+            pins = customers.compactMap { c in
+                guard let lat = c.lat, let lon = c.lon, lat != 0 || lon != 0 else { return nil }
+                return MapPin(lat: lat, lon: lon, title: c.displayName, snippet: c.city)
+            }
+        }
     }
 }
 

@@ -11,15 +11,16 @@ on:
 
 jobs:
   build:
-    runs-on: macos-15
+    # macos-26 (default Xcode 26) — required by the Google Maps iOS SDK (Phase 5).
+    # Using the runner's DEFAULT Xcode so it matches the installed iOS runtime (avoids
+    # the generic/platform=iOS device-destination ineligibility seen when a forced Xcode
+    # mismatches the runtime — see the Xcode-16.4 note in git history).
+    runs-on: macos-26
     steps:
       - uses: actions/checkout@v4
 
-      - name: Select Xcode 16.4
-        # Xcode_16.app (16.0) doesn't match the runner's installed iOS 18 runtime,
-        # so the generic/platform=iOS device destination becomes Ineligible once a
-        # Swift package is in the graph. 16.4 matches it. (actions/runner-images#12758)
-        run: sudo xcode-select -s /Applications/Xcode_16.4.app
+      - name: Show selected Xcode
+        run: xcodebuild -version
 
       - name: Materialize Secrets.xcconfig
         run: printf 'MAPS_API_KEY = %s\n' "${MAPS_API_KEY:-placeholder}" > Secrets.xcconfig

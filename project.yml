@@ -14,6 +14,9 @@ packages:
   GRDB:
     url: https://github.com/groue/GRDB.swift
     from: "7.0.0"
+  GoogleMaps:
+    url: https://github.com/googlemaps/ios-maps-sdk
+    from: "9.0.0"
 settings:
   base:
     MARKETING_VERSION: "1.5.0"
@@ -36,6 +39,8 @@ targets:
         product: Citadel
       - package: GRDB
         product: GRDB
+      - package: GoogleMaps
+        product: GoogleMaps
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.routenplaner.app

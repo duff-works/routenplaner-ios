@@ -32,6 +32,11 @@ jobs:
       - name: Verify shared scheme exists
         run: xcodebuild -list -project Routenplaner.xcodeproj | grep -q "Routenplaner"
 
+      - name: Diagnostics (SDKs + destinations, non-fatal)
+        run: |
+          echo "--- installed iOS SDKs ---"; xcodebuild -showsdks | grep -i ios || true
+          echo "--- destinations for scheme ---"; xcodebuild -showdestinations -project Routenplaner.xcodeproj -scheme Routenplaner 2>&1 | head -30 || true
+
       - name: Unit test logic package
         run: swift test --package-path RoutenplanerLogic
 
@@ -39,14 +44,14 @@ jobs:
         run: |
           xcodebuild build \
             -project Routenplaner.xcodeproj -scheme Routenplaner \
-            -configuration Release -sdk iphoneos \
+            -configuration Release -destination 'generic/platform=iOS' \
             CODE_SIGNING_ALLOWED=NO
 
       - name: Archive (unsigned)
         run: |
           xcodebuild archive \
             -project Routenplaner.xcodeproj -scheme Routenplaner -configuration Release \
-            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
             -archivePath "$PWD/build/Routenplaner.xcarchive" \
             CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
 

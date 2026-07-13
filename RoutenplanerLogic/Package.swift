@@ -3,6 +3,7 @@ import PackageDescription
 
 let package = Package(
     name: "RoutenplanerLogic",
+    platforms: [.iOS(.v16), .macOS(.v12)],
     products: [
         .library(name: "RoutenplanerLogic", targets: ["RoutenplanerLogic"]),
     ],

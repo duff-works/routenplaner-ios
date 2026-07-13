@@ -69,6 +69,12 @@ public struct SortimentItem: Codable, Equatable {
     public var artNr: String?
     public var name: String?
     public var qty: Int?
+    // Backend uses cArtNr/cName/quantity (irregular — convertFromSnakeCase won't map these).
+    enum CodingKeys: String, CodingKey {
+        case artNr = "cArtNr"
+        case name = "cName"
+        case qty = "quantity"
+    }
 }
 
 public struct CustomerSupplier: Codable, Equatable {

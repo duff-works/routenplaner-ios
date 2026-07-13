@@ -8,6 +8,9 @@ final class APIClient {
     private let session: URLSession
     private let decoder = makeAPIJSONDecoder()
 
+    /// Invoked when an authenticated data request returns 401 (session expired).
+    var onUnauthorized: (@Sendable () -> Void)?
+
     init(store: ConnectionStore, session: URLSession = .shared) {
         self.store = store
         self.session = session
@@ -90,7 +93,10 @@ final class APIClient {
             throw APIError.transport(error.localizedDescription)
         }
         let status = (response as? HTTPURLResponse)?.statusCode ?? 0
-        if let apiErr = mapHTTPStatus(status, body: data) { throw apiErr }
+        if let apiErr = mapHTTPStatus(status, body: data) {
+            if case .unauthorized = apiErr { onUnauthorized?() }  // mid-session token expiry
+            throw apiErr
+        }
         do {
             return try decoder.decode(Out.self, from: data)
         } catch {

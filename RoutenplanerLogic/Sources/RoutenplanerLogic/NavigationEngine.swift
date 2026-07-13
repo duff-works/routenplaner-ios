@@ -224,7 +224,7 @@ public final class NavigationEngine {
             mode = .walking
             offRouteCounter = 0
             pendingDirectionsFetch = false
-            return [.reachedParking(notes: target?.parking != nil ? nil : nil),
+            return [.reachedParking(notes: nil),
                     .announce("Sie haben den Parkplatz erreicht. Weiter zu Fuß."),
                     .needsDirections(destination: target?.destination ?? parking, mode: .walking,
                                      reason: .parkingToCustomerWalk)]

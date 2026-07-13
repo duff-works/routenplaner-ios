@@ -12,6 +12,11 @@ final class SpeechAnnouncer {
         voice = AVSpeechSynthesisVoice(language: "de-DE")
             ?? AVSpeechSynthesisVoice(language: "de-CH")
             ?? AVSpeechSynthesisVoice(language: "de")
+    }
+
+    /// Activate the audio session only when navigation actually starts (so merely
+    /// building the view model doesn't duck the user's music).
+    func activateSession() {
         let session = AVAudioSession.sharedInstance()
         try? session.setCategory(.playback, mode: .voicePrompt,
                                  options: [.duckOthers, .interruptSpokenAudioAndMixWithOthers])

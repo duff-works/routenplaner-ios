@@ -34,6 +34,7 @@ final class NavigationViewModel: ObservableObject {
     func start() async {
         guard !isActive else { return }
         isActive = true
+        announcer.activateSession()
         let backendKey = try? await api.getMapsKey()
         let key = backendKey
             ?? (Bundle.main.object(forInfoDictionaryKey: "MAPS_API_KEY") as? String ?? "")

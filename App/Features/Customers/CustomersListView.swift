@@ -30,8 +30,12 @@ struct CustomersListView: View {
             CustomerDetailView(customerId: id)
         }
         .searchable(text: $search, prompt: "Suchen")
-        .onChange(of: search) { _, _ in Task { await load() } }
-        .task { if customers.isEmpty { await load() } }
+        .task(id: search) {
+            // Debounce keystrokes; a new search cancels this task (drops stale results).
+            if !search.isEmpty { try? await Task.sleep(for: .milliseconds(300)) }
+            if Task.isCancelled { return }
+            await load()
+        }
         .refreshable { await load() }
         .overlay {
             if loading && customers.isEmpty { ProgressView() }

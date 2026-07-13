@@ -19,6 +19,9 @@ final class AppState: ObservableObject {
         self.store = store
         let api = APIClient(store: store)
         self.api = api
+        api.onUnauthorized = { [weak self] in
+            Task { @MainActor in self?.handleUnauthorized() }
+        }
         let database = AppDatabase.shared
         self.db = database
         self.customers = CustomerRepository(api: api, db: database)

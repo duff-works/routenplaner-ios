@@ -7,7 +7,7 @@ struct MainTabView: View {
         TabView {
             NavigationStack { DashboardView() }
                 .tabItem { Label("Heute", systemImage: "calendar") }
-            NavigationStack { PlaceholderScreen(title: "Route") }
+            NavigationStack { RouteListView() }
                 .tabItem { Label("Route", systemImage: "map") }
             NavigationStack { CustomersListView() }
                 .tabItem { Label("Kunden", systemImage: "person.2") }

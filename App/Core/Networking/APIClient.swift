@@ -114,4 +114,14 @@ final class APIClient {
     func getCustomer(id: String) async throws -> Customer {
         try await getJSON(path: "/kunden/\(id)")
     }
+
+    func getRoutes() async throws -> [Route] {
+        let resp: RouteListResponse = try await getJSON(path: "/routen")
+        return resp.routes
+    }
+
+    /// Full route incl. stops + cached directions (polyline).
+    func getRoute(id: String) async throws -> Route {
+        try await getJSON(path: "/routen/\(id)")
+    }
 }

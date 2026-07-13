@@ -9,13 +9,13 @@ struct MapPin: Identifiable {
     let snippet: String?
 }
 
-/// SwiftUI wrapper around GMSMapView (Google Maps iOS SDK). Mirrors the Android
-/// LiveMapComposable: shows status-neutral customer pins and fits them in view.
+/// SwiftUI wrapper around GMSMapView (Google Maps iOS SDK). Shows customer/stop pins
+/// and, optionally, an encoded route polyline (directions_cache.overview_polyline).
 struct GoogleMapView: UIViewRepresentable {
     var pins: [MapPin]
+    var polyline: String? = nil
 
     func makeUIView(context: Context) -> GMSMapView {
-        // Default camera on Switzerland; replaced by the fit-to-pins below.
         let options = GMSMapViewOptions()
         options.camera = GMSCameraPosition.camera(withLatitude: 47.3769, longitude: 8.5417, zoom: 7)
         return GMSMapView(options: options)
@@ -23,8 +23,17 @@ struct GoogleMapView: UIViewRepresentable {
 
     func updateUIView(_ map: GMSMapView, context: Context) {
         map.clear()
-        guard !pins.isEmpty else { return }
         var bounds = GMSCoordinateBounds()
+        var hasContent = false
+
+        if let encoded = polyline, !encoded.isEmpty, let path = GMSPath(fromEncodedPath: encoded) {
+            let line = GMSPolyline(path: path)
+            line.strokeWidth = 4
+            line.strokeColor = .systemBlue
+            line.map = map
+            bounds = bounds.includingPath(path)
+            hasContent = true
+        }
         for pin in pins {
             let position = CLLocationCoordinate2D(latitude: pin.lat, longitude: pin.lon)
             let marker = GMSMarker(position: position)
@@ -32,7 +41,10 @@ struct GoogleMapView: UIViewRepresentable {
             marker.snippet = pin.snippet
             marker.map = map
             bounds = bounds.includingCoordinate(position)
+            hasContent = true
         }
-        map.animate(with: GMSCameraUpdate.fit(bounds, withPadding: 48))
+        if hasContent {
+            map.animate(with: GMSCameraUpdate.fit(bounds, withPadding: 48))
+        }
     }
 }

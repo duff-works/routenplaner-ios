@@ -103,3 +103,42 @@ public struct VisitListResponse: Codable {
     public var visits: [Visit]
     public var total: Int?
 }
+
+// ===== Route =====
+
+public struct Route: Codable, Equatable, Identifiable {
+    public var id: String
+    public var name: String?
+    public var date: String?
+    public var status: String?
+    public var startAddress: String?
+    public var endAddress: String?
+    public var stops: [RouteStop]?
+    public var directionsCache: DirectionsCache?
+}
+
+public struct RouteStop: Codable, Equatable {
+    public var customerId: String?
+    public var order: Int?
+    public var visitId: String?
+    public var customerName: String?
+    public var customerCompany: String?
+    public var customerCity: String?
+    public var lat: Double?
+    public var lon: Double?
+    public var visitStatus: String?
+    public var isFreeStop: Bool?
+    public var freeStopName: String?
+}
+
+public struct DirectionsCache: Codable, Equatable {
+    public var overviewPolyline: String?
+    public var totalDistanceText: String?
+    public var totalDrivingText: String?
+    public var estimatedEnd: String?
+}
+
+public struct RouteListResponse: Codable {
+    public var routes: [Route]
+    public var total: Int?
+}

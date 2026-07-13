@@ -11,7 +11,7 @@ struct MainTabView: View {
                 .tabItem { Label("Route", systemImage: "map") }
             NavigationStack { CustomersListView() }
                 .tabItem { Label("Kunden", systemImage: "person.2") }
-            NavigationStack { PlaceholderScreen(title: "Punkte") }
+            NavigationStack { PunkteView() }
                 .tabItem { Label("Punkte", systemImage: "star") }
             NavigationStack { MoreScreen() }
                 .tabItem { Label("Mehr", systemImage: "ellipsis") }
@@ -70,11 +70,15 @@ private struct MoreScreen: View {
                 }
             }
             Section {
-                NavigationLink {
-                    VisitsListView()
-                } label: {
-                    Label("Besuche", systemImage: "checklist")
-                }
+                NavigationLink { VisitsListView() } label: { Label("Besuche", systemImage: "checklist") }
+                NavigationLink { RegionsView() } label: { Label("Regionen", systemImage: "map") }
+                NavigationLink { AktionenView() } label: { Label("Aktionen", systemImage: "megaphone") }
+                NavigationLink { AnfragenView() } label: { Label("Anfragen", systemImage: "tray") }
+                NavigationLink { UsersView() } label: { Label("Benutzer", systemImage: "person.3") }
+            }
+            Section {
+                NavigationLink { SettingsView() } label: { Label("Einstellungen", systemImage: "gearshape") }
+                NavigationLink { UpdateView() } label: { Label("Update", systemImage: "arrow.down.circle") }
             }
             Section("Daten (Phase 3)") {
                 Button {

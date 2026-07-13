@@ -142,3 +142,64 @@ public struct RouteListResponse: Codable {
     public var routes: [Route]
     public var total: Int?
 }
+
+// ===== Back-office (Phase 7) =====
+
+public struct Region: Codable, Equatable, Identifiable {
+    public var id: String
+    public var name: String?
+    public var group: String?
+    public var type: String?
+    public var assignedTo: String?
+    public var color: String?
+    public var customerCount: Int?
+}
+public struct RegionListResponse: Codable {
+    public var regions: [Region]
+    public var groups: [String]?
+}
+
+public struct Aktion: Codable, Equatable, Identifiable {
+    public var id: String
+    public var title: String?
+    public var description: String?
+    public var startDate: String?
+    public var endDate: String?
+    public var status: String?
+    public var type: String?
+}
+public struct AktionListResponse: Codable {
+    public var actions: [Aktion]
+    public var total: Int?
+}
+
+public struct Anfrage: Codable, Equatable, Identifiable {
+    public var id: String
+    public var type: String?
+    public var status: String?
+    public var createdBy: String?
+    public var createdAt: String?
+    public var customerId: String?
+}
+public struct AnfragenResponse: Codable {
+    public var anfragen: [Anfrage]
+}
+
+public struct PunkteKonto: Codable {
+    public var user: String?
+    public var gesamt: Int?
+}
+
+public struct UserInfo: Codable, Equatable, Identifiable {
+    public var username: String
+    public var role: String?
+    public var created: String?
+    public var street: String?
+    public var plz: String?
+    public var city: String?
+    public var country: String?
+    public var id: String { username }
+}
+public struct UsersListResponse: Codable {
+    public var users: [UserInfo]
+}

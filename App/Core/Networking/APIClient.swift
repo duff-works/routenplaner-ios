@@ -130,6 +130,26 @@ final class APIClient {
         return r.key
     }
 
+    func getRegions() async throws -> [Region] {
+        let r: RegionListResponse = try await getJSON(path: "/regionen")
+        return r.regions
+    }
+    func getAktionen() async throws -> [Aktion] {
+        let r: AktionListResponse = try await getJSON(path: "/aktionen")
+        return r.actions
+    }
+    func getAnfragen() async throws -> [Anfrage] {
+        let r: AnfragenResponse = try await getJSON(path: "/anfragen")
+        return r.anfragen
+    }
+    func getPunkteKonto() async throws -> PunkteKonto {
+        try await getJSON(path: "/punkte/konto")
+    }
+    func getUsers() async throws -> [UserInfo] {
+        let r: UsersListResponse = try await getJSON(path: "/users")
+        return r.users
+    }
+
     /// Live GPS report during navigation (throttled by the caller). Token is a query param.
     func gpsUpdate(lat: Double, lon: Double, accuracy: Double,
                    speed: Double?, heading: Double?, routeId: String?) async {

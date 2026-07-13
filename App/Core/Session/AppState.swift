@@ -19,13 +19,13 @@ final class AppState: ObservableObject {
         self.store = store
         let api = APIClient(store: store)
         self.api = api
-        api.onUnauthorized = { [weak self] in
-            Task { @MainActor in self?.handleUnauthorized() }
-        }
         let database = AppDatabase.shared
         self.db = database
         self.customers = CustomerRepository(api: api, db: database)
         self.visits = VisitRepository(api: api, db: database)
+        api.onUnauthorized = { [weak self] in
+            Task { @MainActor in self?.handleUnauthorized() }
+        }
         NotificationCenter.default.addObserver(
             forName: UIApplication.willEnterForegroundNotification,
             object: nil, queue: .main

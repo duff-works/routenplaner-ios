@@ -56,7 +56,7 @@ struct RouteDetailView: View {
                 }
             }
         }
-        .fullScreenCover(isPresented: $showNav) {
+        .navigationDestination(isPresented: $showNav) {
             if let t = selectedTarget {
                 TurnByTurnView(api: app.api, routeId: routeId, target: t)
             }

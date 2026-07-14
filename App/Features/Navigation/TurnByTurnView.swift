@@ -1,7 +1,9 @@
 import SwiftUI
 
 /// Full-screen turn-by-turn navigation (named TurnByTurnView to avoid shadowing
-/// SwiftUI's deprecated NavigationView).
+/// SwiftUI's deprecated NavigationView). Pushed onto the nav stack (NOT a modal
+/// cover) and given an explicit frame — GMSMapView (Metal) renders black in a
+/// modal / at zero size.
 struct TurnByTurnView: View {
     @StateObject private var vm: NavigationViewModel
     @Environment(\.dismiss) private var dismiss
@@ -11,15 +13,20 @@ struct TurnByTurnView: View {
     }
 
     var body: some View {
-        NavMapView(location: vm.location,
-                   bearing: vm.bearing,
-                   walking: vm.snapshot.travelMode == .walking,
-                   routePolyline: vm.routePolyline)
-            .ignoresSafeArea()
-            .overlay(alignment: .top) { instructionBanner }
-            .overlay(alignment: .bottom) { bottomBar }
-            .task { await vm.start() }
-            .onDisappear { vm.stop() }
+        GeometryReader { geo in
+            NavMapView(location: vm.location,
+                       bearing: vm.bearing,
+                       walking: vm.snapshot.travelMode == .walking,
+                       routePolyline: vm.routePolyline)
+                .frame(width: geo.size.width, height: geo.size.height)
+        }
+        .ignoresSafeArea()
+        .overlay(alignment: .top) { instructionBanner }
+        .overlay(alignment: .bottom) { bottomBar }
+        .navigationBarBackButtonHidden(true)
+        .toolbar(.hidden, for: .navigationBar)
+        .task { await vm.start() }
+        .onDisappear { vm.stop() }
     }
 
     private var instructionBanner: some View {

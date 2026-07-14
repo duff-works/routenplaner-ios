@@ -156,6 +156,26 @@ final class APIClient {
         return r.users
     }
 
+    // Dashboard
+    func getDashboardStats() async throws -> DashboardStats {
+        try await getJSON(path: "/dashboard/stats")
+    }
+    func getMapPins() async throws -> [MapPinDTO] {
+        let r: MapPinsResponse = try await getJSON(path: "/dashboard/map-pins")
+        return r.pins ?? []
+    }
+    func getUpcomingRoutes() async throws -> [UpcomingRoute] {
+        let r: UpcomingRoutesResponse = try await getJSON(path: "/dashboard/upcoming-routes")
+        return r.routes ?? []
+    }
+    func getRecentVisits() async throws -> [RecentVisit] {
+        let r: RecentVisitsResponse = try await getJSON(path: "/dashboard/recent-visits")
+        return r.recent ?? []
+    }
+    func getHeute() async throws -> HeuteResponse {
+        try await getJSON(path: "/dashboard/heute")
+    }
+
     /// Live GPS report during navigation (throttled by the caller). Token is a query param.
     func gpsUpdate(lat: Double, lon: Double, accuracy: Double,
                    speed: Double?, heading: Double?, routeId: String?) async {

@@ -59,7 +59,7 @@ struct AktionenView: View {
                         Text([a.startDate, a.endDate].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " – "))
                             .font(.caption2).foregroundStyle(.secondary)
                         Spacer()
-                        Text(a.status ?? "").font(.caption2)
+                        Text(statusLabel(a.status)).font(.caption2)
                     }
                 }
             }
@@ -68,6 +68,15 @@ struct AktionenView: View {
         .task { if aktionen.isEmpty { await load() } }
         .refreshable { await load() }
         .overlay { if loading && aktionen.isEmpty { ProgressView() } }
+    }
+
+    private func statusLabel(_ s: String?) -> String {
+        switch s {
+        case "active": return "Aktiv"
+        case "upcoming": return "Bevorstehend"
+        case "expired": return "Abgelaufen"
+        default: return s ?? ""
+        }
     }
 
     private func load() async {

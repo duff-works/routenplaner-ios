@@ -58,7 +58,7 @@ struct RouteDetailView: View {
         }
         .fullScreenCover(isPresented: $showNav) {
             if let t = selectedTarget {
-                TurnByTurnView(vm: NavigationViewModel(api: app.api, routeId: routeId, target: t))
+                TurnByTurnView(api: app.api, routeId: routeId, target: t)
             }
         }
         .task { await load() }

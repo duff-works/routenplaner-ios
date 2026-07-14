@@ -3,36 +3,31 @@ import SwiftUI
 /// Full-screen turn-by-turn navigation (named TurnByTurnView to avoid shadowing
 /// SwiftUI's deprecated NavigationView).
 struct TurnByTurnView: View {
-    @StateObject var vm: NavigationViewModel
+    @StateObject private var vm: NavigationViewModel
     @Environment(\.dismiss) private var dismiss
 
+    init(api: APIClient, routeId: String?, target: NavTarget) {
+        _vm = StateObject(wrappedValue: NavigationViewModel(api: api, routeId: routeId, target: target))
+    }
+
     var body: some View {
-        ZStack(alignment: .top) {
-            NavMapView(location: vm.location,
-                       bearing: vm.bearing,
-                       walking: vm.snapshot.travelMode == .walking,
-                       routePolyline: vm.routePolyline)
-                .ignoresSafeArea()
-
-            instructionBanner
-
-            VStack {
-                Spacer()
-                bottomBar
-            }
-        }
-        .task { await vm.start() }
-        .onDisappear { vm.stop() }
+        NavMapView(location: vm.location,
+                   bearing: vm.bearing,
+                   walking: vm.snapshot.travelMode == .walking,
+                   routePolyline: vm.routePolyline)
+            .ignoresSafeArea()
+            .overlay(alignment: .top) { instructionBanner }
+            .overlay(alignment: .bottom) { bottomBar }
+            .task { await vm.start() }
+            .onDisappear { vm.stop() }
     }
 
     private var instructionBanner: some View {
         VStack(spacing: 4) {
             HStack(spacing: 10) {
-                Image(systemName: maneuverIcon(vm.snapshot.maneuver))
-                    .font(.title2)
+                Image(systemName: maneuverIcon(vm.snapshot.maneuver)).font(.title2)
                 Text(vm.snapshot.nextInstruction ?? statusText)
-                    .font(.headline)
-                    .multilineTextAlignment(.leading)
+                    .font(.headline).multilineTextAlignment(.leading)
                 Spacer()
             }
             if vm.snapshot.distanceToNextManeuver > 0 {
@@ -43,17 +38,14 @@ struct TurnByTurnView: View {
                 }
             }
             if vm.snapshot.isOffRoute {
-                HStack {
-                    Text("Route wird neu berechnet…").font(.caption).foregroundStyle(.orange)
-                    Spacer()
-                }
+                HStack { Text("Route wird neu berechnet…").font(.caption).foregroundStyle(.orange); Spacer() }
             }
             if let err = vm.errorMessage {
                 HStack { Text(err).font(.caption).foregroundStyle(.red); Spacer() }
             }
         }
         .padding()
-        .background(.ultraThinMaterial)
+        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 14))
         .padding()
     }
 
@@ -73,7 +65,7 @@ struct TurnByTurnView: View {
             .buttonStyle(.borderedProminent)
         }
         .padding()
-        .background(.ultraThinMaterial)
+        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 14))
         .padding()
     }
 
@@ -81,7 +73,7 @@ struct TurnByTurnView: View {
         switch vm.snapshot.navState {
         case .calculating, .rerouting: return "Route wird berechnet…"
         case .arrived: return "Sie sind angekommen"
-        case .idle: return "Navigation"
+        case .idle: return "Navigation startet…"
         default: return "Weiterfahren"
         }
     }

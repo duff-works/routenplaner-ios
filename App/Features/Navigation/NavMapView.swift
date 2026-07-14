@@ -14,7 +14,7 @@ struct NavMapView: UIViewRepresentable {
         let options = GMSMapViewOptions()
         options.camera = GMSCameraPosition.camera(withLatitude: 47.3769, longitude: 8.5417, zoom: 15)
         let map = GMSMapView(options: options)
-        map.isMyLocationEnabled = false
+        map.isMyLocationEnabled = true   // built-in blue dot as a visible fallback
         map.settings.compassButton = true
         map.settings.tiltGestures = false
         return map
